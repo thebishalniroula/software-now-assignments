@@ -4,6 +4,11 @@ import os
 
 TEMPERATURE_DATA_FOLDER = "temperatures"
 
+AUSTRALIAN_SEASON = {"Summer": ["December", "January", "February"],
+                     "Autumn": ["March", "April", "May"],
+                     "Winter": ["June", "July", "August"],
+                     "Spring": ["September", "October", "November"]}
+
 all_csv_files = glob.glob(os.path.join(TEMPERATURE_DATA_FOLDER, "*.csv"))
 
 temperature_dataframes = []
