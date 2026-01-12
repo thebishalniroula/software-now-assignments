@@ -56,3 +56,25 @@ largest_range_stations = [s for s in station_ranges if s[1] == max_range]
 with open("largest_temp_range_station.txt", "w") as f:
     for name, r, mx, mn in largest_range_stations:
         f.write(f"Station {name}: Range {r:.1f}°C (Max: {mx:.1f}°C, Min: {mn:.1f}°C)\n")
+
+# -------------------- 3) TEMPERATURE STABILITY --------------------
+station_stddev = []
+
+for idx, row in temperature_data_single_frame.iterrows():
+    temps = row[list(AUSTRALIAN_SEASON["Summer"] + AUSTRALIAN_SEASON["Autumn"] + AUSTRALIAN_SEASON["Winter"] + AUSTRALIAN_SEASON["Spring"])]
+    temps = pandas.to_numeric(temps, errors='coerce')
+    std = np.nanstd(temps)
+    station_stddev.append((row['STATION NAME'], std))
+
+min_std = min(station_stddev, key=lambda x: x[1])[1]
+max_std = max(station_stddev, key=lambda x: x[1])[1]
+
+most_stable = [s for s in station_stddev if s[1] == min_std]
+most_variable = [s for s in station_stddev if s[1] == max_std]
+
+# Write to file
+with open("temperature_stability_stations.txt", "w") as f:
+    for name, std in most_stable:
+        f.write(f"Most Stable: Station {name}: StdDev {std:.1f}°C\n")
+    for name, std in most_variable:
+        f.write(f"Most Variable: Station {name}: StdDev {std:.1f}°C\n")
