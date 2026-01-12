@@ -46,7 +46,7 @@ for idx, row in temperature_data_single_frame.iterrows():
     max_temp = np.nanmax(temps)
     min_temp = np.nanmin(temps)
     temp_range = max_temp - min_temp
-    station_ranges.append((row['STATION NAME'], temp_range, max_temp, min_temp))
+    station_ranges.append((row['STATION_NAME'], temp_range, max_temp, min_temp))
 
 # Find stations with the largest range
 max_range = max(station_ranges, key=lambda x: x[1])[1]
@@ -64,7 +64,7 @@ for idx, row in temperature_data_single_frame.iterrows():
     temps = row[list(AUSTRALIAN_SEASON["Summer"] + AUSTRALIAN_SEASON["Autumn"] + AUSTRALIAN_SEASON["Winter"] + AUSTRALIAN_SEASON["Spring"])]
     temps = pandas.to_numeric(temps, errors='coerce')
     std = np.nanstd(temps)
-    station_stddev.append((row['STATION NAME'], std))
+    station_stddev.append((row['STATION_NAME'], std))
 
 min_std = min(station_stddev, key=lambda x: x[1])[1]
 max_std = max(station_stddev, key=lambda x: x[1])[1]
