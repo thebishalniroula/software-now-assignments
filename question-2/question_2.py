@@ -58,7 +58,7 @@ temperature_data_single_frame = pandas.concat(temperature_dataframes, ignore_ind
 seasonal_average = {}
 
 for season, months in AUSTRALIAN_SEASON.items():
-    # Flatten all temperature values for these months across all stations and years
+    # We flatten all values for these months across all stations and years
     temperatures = temperature_data_single_frame[months].to_numpy().flatten()
     # Convert to numeric and ignore NaN
     temperatures = pandas.to_numeric(temperatures, errors='coerce')
@@ -73,7 +73,7 @@ with open("average_temperature.txt", "w") as f:
 station_ranges = []
 
 for idx, row in temperature_data_single_frame.iterrows():
-    # Combinng all the monthly stations for a particular station
+    # Combining all the monthly stations for a particular station
     temperatures = row[list(
         AUSTRALIAN_SEASON["Summer"] + AUSTRALIAN_SEASON["Autumn"] + AUSTRALIAN_SEASON["Winter"] + AUSTRALIAN_SEASON[
             "Spring"])]
@@ -113,3 +113,4 @@ with open("temperature_stability_stations.txt", "w") as f:
         f.write(f"Most Stable: Station {name}: StdDev {std:.1f}°C\n")
     for name, std in most_variable:
         f.write(f"Most Variable: Station {name}: StdDev {std:.1f}°C\n")
+
