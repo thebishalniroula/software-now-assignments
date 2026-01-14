@@ -1,145 +1,170 @@
-# Question 1
-# Create a program that reads the text file "raw_text.txt", encrypts its contents using a
-# simple encryption method, and writes the encrypted text to a new file
-# "encrypted_text.txt". Then create a function to decrypt the content and a function to
-# verify the decryption was successful.
-# Requirements
-# The encryption should take two user inputs (shift1, shift2), and follow these rules:
-# • For lowercase letters:
-# o If the letter is in the first half of the alphabet (a-m): shift forward by shift1 *
-# shift2 positions
-# o If the letter is in the second half (n-z): shift backward by shift1 + shift2
-# positions
-# • For uppercase letters:
-# o If the letter is in the first half (A-M): shift backward by shift1 positions
-# o If the letter is in the second half (N-Z): shift forward by shift2² positions
-# (shift2 squared)
-# • Other characters:
-# o Spaces, tabs, newlines, special characters, and numbers remain
-# unchanged
-# Main Functions to Implement
-# Encryption function: Reads from "raw_text.txt" and writes encrypted content to
-# "encrypted_text.txt" .
-# Decryption function: Reads from "encrypted_text.txt" and writes the decrypted
-# content to "decrypted_text.txt" .
-# Verification function: Compares "raw_text.txt" with "decrypted_text.txt" and prints
-# whether the decryption was successful or not.
-# Program Behavior
-# When run, your program should automatically:
-# 1. 2. 4. Prompt the user for shift1 and shift2 values
-# Encrypt the contents of "raw_text.txt"
-# 3. Decrypt the encrypted file
-# Verify the decryption matches the original
-
-
 RAW_FILE_PATH = "raw_text.txt"
 ENCRYPTED_FILE_PATH = "encrypted_text.txt"
 DECRYPTED_FILE_PATH = "decrypted_text.txt"
 
-def create_character_map(shift1, shift2):
-    encrypt_map = {}
+# Function to encrypt raw text
+def encrypt_text(content, shift1, shift2):
+    encrypted_content = ""
     
-    # Calculate shifts
+    # Calculate shifts based on rules
     lower_forward_shift = (shift1 * shift2) % 26  # for a-m
     lower_backward_shift = (shift1 + shift2) % 26  # for n-z
     upper_backward_shift = shift1 % 26  # for A-M
     upper_forward_shift = (shift2 ** 2) % 26  # for N-Z
     
-    # For lowercase letters
-    for i in range(26):
-        ch = chr(ord('a') + i)
-        
-        if 'a' <= ch <= 'm':  # First half of lowercase alphabet
-            new_pos = (i + lower_forward_shift) % 26
-            encrypt_map[ch] = chr(ord('a') + new_pos)
-        else:  # Second half
-            new_pos = (i - lower_backward_shift) % 26
-            encrypt_map[ch] = chr(ord('a') + new_pos)
+    for char in content:
+        if 'a' <= char <= 'z':  # Lowercase
+            if 'a' <= char <= 'm':  # First half (a-m)
+                # Shift forward by shift1 * shift2
+                new_pos = (ord(char) - ord('a') + lower_forward_shift) % 26
+                encrypted_char = chr(ord('a') + new_pos)
+                # Add marker to indicate this was originally in first half
+                encrypted_content += 'F' + encrypted_char
+            else:  # Second half (n-z)
+                # Shift backward by shift1 + shift2
+                new_pos = (ord(char) - ord('a') - lower_backward_shift) % 26
+                encrypted_char = chr(ord('a') + new_pos)
+                encrypted_content += encrypted_char  # No marker for second half
+                
+        elif 'A' <= char <= 'Z':  # Uppercase
+            if 'A' <= char <= 'M':  # First half (A-M)
+                # Shift backward by shift1
+                new_pos = (ord(char) - ord('A') - upper_backward_shift) % 26
+                encrypted_char = chr(ord('A') + new_pos)
+                # Add marker to indicate this was originally in first half
+                encrypted_content += 'F' + encrypted_char
+            else:  # Second half (N-Z)
+                # Shift forward by shift2²
+                new_pos = (ord(char) - ord('A') + upper_forward_shift) % 26
+                encrypted_char = chr(ord('A') + new_pos)
+                encrypted_content += encrypted_char  # No marker for second half
+                
+        else:  # Non-alphabetic characters
+            encrypted_content += char
     
-    # For uppercase letters
-    for i in range(26):
-        ch = chr(ord('A') + i)
-        
-        if 'A' <= ch <= 'M':  # First half of uppercase alphabet
-            new_pos = (i - upper_backward_shift) % 26
-            encrypt_map[ch] = chr(ord('A') + new_pos)
-        else:  # Second half
-            new_pos = (i + upper_forward_shift) % 26
-            encrypt_map[ch] = chr(ord('A') + new_pos)
+    return encrypted_content
+
+# Function to decrypt encrypted text
+def decrypt_text(encrypted_content, shift1, shift2):
+    decrypted_content = ""
+    i = 0
     
-    # Decryption map is the inverse of encryption map
-    decrypt_map = {v: k for k, v in encrypt_map.items()}
+    # Calculate shifts (same as in encryption)
+    lower_forward_shift = (shift1 * shift2) % 26
+    lower_backward_shift = (shift1 + shift2) % 26
+    upper_backward_shift = shift1 % 26
+    upper_forward_shift = (shift2 ** 2) % 26
     
-    return encrypt_map, decrypt_map
-
-print(create_character_map(1, 2))
+    while i < len(encrypted_content):
+        char = encrypted_content[i]
         
-# def encrypt_text(content, shift1, shift2):
-#     encrypt_map, _ = create_character_map(shift1, shift2)
-#     encrypted_content = ""
-#     for c in content:
-#         # If character is not an alphabetic character, leave it unchanged
-#         if c not in encrypt_map:
-#             encrypted_content += c
-#         else:
-#             encrypted_content += encrypt_map[c]
-#     return encrypted_content
-
-
-# def decrypt_text(encrypted_content, shift1, shift2):
-#     _, decrypt_map = create_character_map(shift1, shift2)
-#     decrypted_content = ""
-#     for c in encrypted_content:
-#         # If character is not an alphabetic character, leave it unchanged
-#         if c not in decrypt_map:
-#             decrypted_content += c
-#         else:
-#             decrypted_content += decrypt_map[c]
-#     return decrypted_content
-        
-# def read_file(file_path):
-#     with open(file_path, 'r', encoding='utf-8') as file:
-#         return file.read()
+        # Check for marker 'F' which indicates original was in first half
+        if char == 'F' and i + 1 < len(encrypted_content):
+            next_char = encrypted_content[i + 1]
+            
+            if 'a' <= next_char <= 'z':
+                # Lowercase, was in first half (a-m): reverse forward shift
+                new_pos = (ord(next_char) - ord('a') - lower_forward_shift) % 26
+                decrypted_char = chr(ord('a') + new_pos)
+                decrypted_content += decrypted_char
+                i += 2  # Skip marker and character
+                
+            elif 'A' <= next_char <= 'Z':
+                # Uppercase, was in first half (A-M): reverse backward shift
+                new_pos = (ord(next_char) - ord('A') + upper_backward_shift) % 26
+                decrypted_char = chr(ord('A') + new_pos)
+                decrypted_content += decrypted_char
+                i += 2  # Skip marker and character
+                
+            else:
+                # Not a letter after marker, just add the 'F'
+                decrypted_content += char
+                i += 1
+                
+        elif 'a' <= char <= 'z':  # Lowercase without marker (was in second half)
+            # Reverse backward shift
+            new_pos = (ord(char) - ord('a') + lower_backward_shift) % 26
+            decrypted_char = chr(ord('a') + new_pos)
+            decrypted_content += decrypted_char
+            i += 1
+            
+        elif 'A' <= char <= 'Z':  # Uppercase without marker (was in second half)
+            # Reverse forward shift
+            new_pos = (ord(char) - ord('A') - upper_forward_shift) % 26
+            decrypted_char = chr(ord('A') + new_pos)
+            decrypted_content += decrypted_char
+            i += 1
+            
+        else:  # Non-alphabetic characters
+            decrypted_content += char
+            i += 1
     
-# def write_file(file_path, content):
-#     with open(file_path, 'w', encoding='utf-8') as file:
-#         file.write(content)
+    return decrypted_content
 
+# Utility functions for file operations and verification
+def read_file(file_path):
+    """Read content from a file"""
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            return file.read()
+    except FileNotFoundError:
+        print(f"Error: File {file_path} not found.")
+        return ""
 
-# def read_shift_values():
-#     shift1 = int(input("Enter shift1 value: "))
-#     shift2 = int(input("Enter shift2 value: "))
-#     return shift1, shift2
+def write_file(file_path, content):
+    """Write content to a file"""
+    with open(file_path, 'w', encoding='utf-8') as file:
+        file.write(content)
 
+# Utility function for user input (shift values)
+def read_shift_values():
+    """Read shift values from user input"""
+    while True:
+        try:
+            shift1 = int(input("Enter shift1 value (integer): "))
+            shift2 = int(input("Enter shift2 value (integer): "))
+            return shift1, shift2
+        except ValueError:
+            print("Please enter valid integers.")
 
-# def verify_decryption(original_file, decrypted_file):
-#     original_content = read_file(original_file)
-#     decrypted_content = read_file(decrypted_file)
-#     if original_content == decrypted_content:
-#         return True
-#     else:
-#         return False
-        
-# def main():
-#     shift1, shift2 = read_shift_values()
-#     raw_file_text = read_file(RAW_FILE_PATH)
+# Utility function for verification
+def verify_decryption(original_file, decrypted_file):
+    original_content = read_file(original_file)
+    decrypted_content = read_file(decrypted_file)
+    
+    if original_content == decrypted_content:
+        print("Decryption successful: The decrypted text matches the original.")
+        return True
+    else:
+        print("Decryption failed: The decrypted text does not match the original.")
+    
+        return False
 
-#     # Encrypt
-#     encrypted_content = encrypt_text(raw_file_text, shift1, shift2)
-#     write_file(ENCRYPTED_FILE_PATH, encrypted_content)
+def main():
+    # Read shift values
+    shift1, shift2 = read_shift_values()
+    
+    # Read original file
+    raw_content = read_file(RAW_FILE_PATH)
+    if not raw_content:
+        print(f"{RAW_FILE_PATH} is empty or not found. Exiting.")
+        return
+    
+    print(f"Original content length: {len(raw_content)} characters")
+    
+    # Encrypt
+    encrypted_content = encrypt_text(raw_content, shift1, shift2)
+    write_file(ENCRYPTED_FILE_PATH, encrypted_content)
+    print(f"Encrypted content written to '{ENCRYPTED_FILE_PATH}'")
+    
+    # Decrypt
+    encrypted_content_from_file = read_file(ENCRYPTED_FILE_PATH)
+    decrypted_content = decrypt_text(encrypted_content_from_file, shift1, shift2)
+    write_file(DECRYPTED_FILE_PATH, decrypted_content)
+    print(f"Decrypted content written to '{DECRYPTED_FILE_PATH}'")
+    
+    # Verify
+    verify_decryption(RAW_FILE_PATH, DECRYPTED_FILE_PATH)
 
-#     # Decrypt
-#     encrypted_file_text = read_file(ENCRYPTED_FILE_PATH)
-#     decrypted_content = decrypt_text(encrypted_file_text, shift1, shift2)
-#     write_file(DECRYPTED_FILE_PATH, decrypted_content)
-
-#     # Verify
-#     verify_success = verify_decryption(RAW_FILE_PATH, DECRYPTED_FILE_PATH)
-
-#     if verify_success:
-#         print("Decryption successful: The decrypted text matches the original.")
-#     else:
-#         print("Decryption failed: The decrypted text does not match the original.")
-
-
-# main()
+if __name__ == "__main__":
+    main()
