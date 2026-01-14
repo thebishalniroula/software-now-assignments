@@ -32,118 +32,114 @@
 # Verify the decryption matches the original
 
 
-file_path = "raw_text.txt"
+RAW_FILE_PATH = "raw_text.txt"
+ENCRYPTED_FILE_PATH = "encrypted_text.txt"
+DECRYPTED_FILE_PATH = "decrypted_text.txt"
 
-def encrypt_char(c, shift1, shift2):
-        if 'a' <= c <= 'm':
-            unicode_for_a = ord('a')
-            shift_value = shift1 * shift2
-            character_index = ord(c) - unicode_for_a
-            encrypted_index = (character_index + shift_value) % 26
-            return chr(encrypted_index + unicode_for_a)
-        elif 'n' <= c <= 'z':
-            unicode_for_a = ord('a')
-            shift_value = shift1 + shift2
-            character_index = ord(c) - unicode_for_a
-            encrypted_index = (character_index - shift_value) % 26
-            return chr(encrypted_index + unicode_for_a)
-        elif 'A' <= c <= 'M':
-            unicode_for_A = ord('A')
-            shift_value = shift1
-            character_index = ord(c) - unicode_for_A
-            encrypted_index = (character_index - shift_value) % 26
-            return chr(encrypted_index + unicode_for_A)
-        elif 'N' <= c <= 'Z':
-            unicode_for_A = ord('A')
-            shift_value = shift2 ** 2
-            character_index = ord(c) - unicode_for_A
-            encrypted_index = (character_index + shift_value) % 26
-            return chr(encrypted_index + unicode_for_A)
-        else:
-            return c
-        
-def encrypt_text(content, shift1, shift2):
-    encrypted_content = ""
-    for c in content:
-        encrypted_content += encrypt_char(c, shift1, shift2)
-    return encrypted_content
-
-def decrypt_char(c, shift1, shift2):
-        if 'a' <= c <= 'm':
-            unicode_for_a = ord('a')
-            shift_value = shift1 * shift2
-            character_index = ord(c) - unicode_for_a
-            decrypted_index = (character_index - shift_value) % 26
-            return chr(decrypted_index + unicode_for_a)
-        elif 'n' <= c <= 'z':
-            unicode_for_a = ord('a')
-            shift_value = shift1 + shift2
-            character_index = ord(c) - unicode_for_a
-            decrypted_index = (character_index + shift_value) % 26
-            return chr(decrypted_index + unicode_for_a)
-        elif 'A' <= c <= 'M':
-            unicode_for_A = ord('A')
-            shift_value = shift1
-            character_index = ord(c) - unicode_for_A
-            decrypted_index = (character_index + shift_value) % 26
-            return chr(decrypted_index + unicode_for_A)
-        elif 'N' <= c <= 'Z':
-            unicode_for_A = ord('A')
-            shift_value = shift2 ** 2
-            character_index = ord(c) - unicode_for_A
-            decrypted_index = (character_index - shift_value) % 26
-            return chr(decrypted_index + unicode_for_A)
-        else:
-            return c
-
-def decrypt_text(encrypted_content, shift1, shift2):
-    decrypted_content = ""
-    for c in encrypted_content:
-        decrypted_content += decrypt_char(c, shift1, shift2)
-    write_file("decrypted_text.txt", decrypted_content)
-    return decrypted_content
-        
-def read_file(file_path):
-    with open(file_path, 'r', encoding='utf-8') as file:
-        return file.read()
+def create_character_map(shift1, shift2):
+    encrypt_map = {}
     
-def write_file(file_path, content):
-    with open(file_path, 'w', encoding='utf-8') as file:
-        file.write(content)
-
-
-def read_shift_values():
-    shift1 = int(input("Enter shift1 value: "))
-    shift2 = int(input("Enter shift2 value: "))
-    return shift1, shift2
-
-
-def verify_decryption(original_file, decrypted_file):
-    original_content = read_file(original_file)
-    decrypted_content = read_file(decrypted_file)
-    if original_content == decrypted_content:
-        return True
-    else:
-        return False
-        
-def main():
-    shift1, shift2 = read_shift_values()
-    raw_file_text = read_file(file_path)
-
-    encrypted_content = encrypt_text(raw_file_text, shift1, shift2)
-    write_file("encrypted_text.txt", encrypted_content)
-
-    encrypted_file_text = read_file("encrypted_text.txt")
-    decrypted_content = decrypt_text(encrypted_file_text, shift1, shift2)
-
-    verify_success = verify_decryption(file_path, "decrypted_text.txt")
-
-    if verify_success:
-        print("Decryption successful: The decrypted text matches the original.")
-    else:
-        print("Decryption failed: The decrypted text does not match the original.")
-
-    verify_success = decrypt_text(encrypted_file_text, shift1, shift2)
-
+    # Calculate shifts
+    lower_forward_shift = (shift1 * shift2) % 26  # for a-m
+    lower_backward_shift = (shift1 + shift2) % 26  # for n-z
+    upper_backward_shift = shift1 % 26  # for A-M
+    upper_forward_shift = (shift2 ** 2) % 26  # for N-Z
     
-main()
+    # For lowercase letters
+    for i in range(26):
+        ch = chr(ord('a') + i)
+        
+        if 'a' <= ch <= 'm':  # First half of lowercase alphabet
+            new_pos = (i + lower_forward_shift) % 26
+            encrypt_map[ch] = chr(ord('a') + new_pos)
+        else:  # Second half
+            new_pos = (i - lower_backward_shift) % 26
+            encrypt_map[ch] = chr(ord('a') + new_pos)
+    
+    # For uppercase letters
+    for i in range(26):
+        ch = chr(ord('A') + i)
+        
+        if 'A' <= ch <= 'M':  # First half of uppercase alphabet
+            new_pos = (i - upper_backward_shift) % 26
+            encrypt_map[ch] = chr(ord('A') + new_pos)
+        else:  # Second half
+            new_pos = (i + upper_forward_shift) % 26
+            encrypt_map[ch] = chr(ord('A') + new_pos)
+    
+    # Decryption map is the inverse of encryption map
+    decrypt_map = {v: k for k, v in encrypt_map.items()}
+    
+    return encrypt_map, decrypt_map
+
+print(create_character_map(1, 2))
+        
+# def encrypt_text(content, shift1, shift2):
+#     encrypt_map, _ = create_character_map(shift1, shift2)
+#     encrypted_content = ""
+#     for c in content:
+#         # If character is not an alphabetic character, leave it unchanged
+#         if c not in encrypt_map:
+#             encrypted_content += c
+#         else:
+#             encrypted_content += encrypt_map[c]
+#     return encrypted_content
+
+
+# def decrypt_text(encrypted_content, shift1, shift2):
+#     _, decrypt_map = create_character_map(shift1, shift2)
+#     decrypted_content = ""
+#     for c in encrypted_content:
+#         # If character is not an alphabetic character, leave it unchanged
+#         if c not in decrypt_map:
+#             decrypted_content += c
+#         else:
+#             decrypted_content += decrypt_map[c]
+#     return decrypted_content
+        
+# def read_file(file_path):
+#     with open(file_path, 'r', encoding='utf-8') as file:
+#         return file.read()
+    
+# def write_file(file_path, content):
+#     with open(file_path, 'w', encoding='utf-8') as file:
+#         file.write(content)
+
+
+# def read_shift_values():
+#     shift1 = int(input("Enter shift1 value: "))
+#     shift2 = int(input("Enter shift2 value: "))
+#     return shift1, shift2
+
+
+# def verify_decryption(original_file, decrypted_file):
+#     original_content = read_file(original_file)
+#     decrypted_content = read_file(decrypted_file)
+#     if original_content == decrypted_content:
+#         return True
+#     else:
+#         return False
+        
+# def main():
+#     shift1, shift2 = read_shift_values()
+#     raw_file_text = read_file(RAW_FILE_PATH)
+
+#     # Encrypt
+#     encrypted_content = encrypt_text(raw_file_text, shift1, shift2)
+#     write_file(ENCRYPTED_FILE_PATH, encrypted_content)
+
+#     # Decrypt
+#     encrypted_file_text = read_file(ENCRYPTED_FILE_PATH)
+#     decrypted_content = decrypt_text(encrypted_file_text, shift1, shift2)
+#     write_file(DECRYPTED_FILE_PATH, decrypted_content)
+
+#     # Verify
+#     verify_success = verify_decryption(RAW_FILE_PATH, DECRYPTED_FILE_PATH)
+
+#     if verify_success:
+#         print("Decryption successful: The decrypted text matches the original.")
+#     else:
+#         print("Decryption failed: The decrypted text does not match the original.")
+
+
+# main()
