@@ -150,6 +150,32 @@ def write_file(file_path, content):
     with open(file_path, 'w', encoding='utf-8') as file:
         file.write(content)
 
+def encrypt_file(input_path, output_path, shift1, shift2):
+    """
+    Reads text from input_path, encrypts it, and writes to output_path
+    """
+    content= read_file(input_path)
+    if not content:
+        print(f"No content to encrypt in {input_path}")
+        return
+    
+    encrypted_content= encrypt_text(content, shift1, shift2)
+    write_file(output_path, encrypted_content)
+
+
+
+def decrypt_file(input_path, output_path, shift1, shift2):
+    """Reads encrypted text from input_path, decrypts it, and writes to output_path"""
+
+    content = read_file(input_path)
+    if not content:
+        print(f"no content to decrypt in {input_path}")
+        return
+    
+    decrypted_content = decrypt_text(content, shift1, shift2)
+    write_file(output_path, decrypted_content)
+
+
 # Utility function for user input (shift values)
 def read_shift_values():
     """Read shift values from user input"""
@@ -186,15 +212,13 @@ def main():
     
     print(f"Original content length: {len(raw_content)} characters")
     
-    # Encrypt
-    encrypted_content = encrypt_text(raw_content, shift1, shift2)
-    write_file(ENCRYPTED_FILE_PATH, encrypted_content)
+    #Encrypt
+    encrypt_file(RAW_FILE_PATH, ENCRYPTED_FILE_PATH, shift1, shift2)
     print(f"Encrypted content written to '{ENCRYPTED_FILE_PATH}'")
-    
-    # Decrypt
-    encrypted_content_from_file = read_file(ENCRYPTED_FILE_PATH)
-    decrypted_content = decrypt_text(encrypted_content_from_file, shift1, shift2)
-    write_file(DECRYPTED_FILE_PATH, decrypted_content)
+
+
+    #Decrypt
+    decrypt_file(ENCRYPTED_FILE_PATH, DECRYPTED_FILE_PATH, shift1, shift2)
     print(f"Decrypted content written to '{DECRYPTED_FILE_PATH}'")
     
     # Verify
